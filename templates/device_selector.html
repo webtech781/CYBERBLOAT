@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Add loading overlay (initially hidden) -->
+<div id="loadingOverlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading Installed Apps...</p>
+</div>
+
+<div class="container">
+    <h1>ADB Device Manager</h1>
+    {% if devices|length > 0 %}
+        <div class="device-list">
+            <h2>Select a device:</h2>
+            <form id="deviceForm">
+                {% for device in devices %}
+                <div class="device-item">
+                    <input type="radio" name="device" id="{{ device }}" value="{{ device }}"
+                        {% if selected_device and selected_device == device %}checked{% endif %}
+                        onchange="handleDeviceSelection(this.value)">
+                    <label for="{{ device }}">{{ device }}</label>
+                </div>
+                {% endfor %}
+            </form>
+        </div>
+
+        <div class="command-section">
+            <h2>ADB Commands</h2>
+            <div class="command-grid">
+                <a href="/device/{{ devices[0] }}/info" class="command-button">
+                    Device Info
+                </a>
+                <a href="/installed_apps/{{ devices[0] }}" class="command-button" onclick="showLoadingOverlay()">
+                    Installed Apps
+                </a>
+                <a href="/shell_commands/{{ devices[0] }}" class="command-button">
+                    Shell Commands
+                </a>
+                <a href="/device/{{ devices[0] }}/files" class="command-button">
+                    📂 File Manager
+                </a>
+                
+                {% for cmd_key, cmd_value in commands.items() %}
+                    {% if cmd_key != 'installed_apps' %}
+                    <div class="command-button" data-command="{{ cmd_key }}">
+                        {{ cmd_key.replace('_', ' ').title() }}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="result-section">
+            <h2>Command Output</h2>
+            <pre id="commandOutput">Select a command to see output...</pre>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function handleDeviceSelection(deviceId) {
+    // Update all command button hrefs with the selected device ID
+    document.querySelectorAll('.command-button').forEach(button => {
+        if (button.hasAttribute('href')) {
+            let href = button.getAttribute('href');
+            // Update the device ID in the href
+            href = href.replace(/\/[^\/]+\/(info|files|installed_apps|shell_commands)/, `/${deviceId}/$1`);
+            button.setAttribute('href', href);
+        }
+    });
+}
+
+function showLoadingOverlay() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+}
+
+// Handle initial device selection
+window.onload = function() {
+    const selectedDevice = document.querySelector('input[name="device"]:checked');
+    if (selectedDevice) {
+        handleDeviceSelection(selectedDevice.value);
+    }
+};
+</script>
+{% endblock %} 

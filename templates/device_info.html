@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Device Information</h1>
+    
+    <div class="info-card">
+        <h2>Basic Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Model:</label>
+                <span>{{ info.model }}</span>
+            </div>
+            <div class="info-item">
+                <label>Manufacturer:</label>
+                <span>{{ info.manufacturer }}</span>
+            </div>
+            <div class="info-item">
+                <label>Android Version:</label>
+                <span>{{ info.android_version }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h2>Battery Status</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <label>Level:</label>
+                <span>{{ info.battery.level }}%</span>
+            </div>
+            <div class="info-item">
+                <label>Status:</label>
+                <span>{{ info.battery.status }}</span>
+            </div>
+            <div class="info-item">
+                <label>Temperature:</label>
+                <span>{{ info.battery.temperature|float / 10 }}°C</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <h2>Storage Information</h2>
+        <table class="storage-table">
+            <thead>
+                <tr>
+                    <th>Mount Point</th>
+                    <th>Total</th>
+                    <th>Used</th>
+                    <th>Available</th>
+                    <th>Use %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for storage in info.storage %}
+                <tr>
+                    <td>{{ storage.mounted }}</td>
+                    <td>{{ storage.size }}</td>
+                    <td>{{ storage.used }}</td>
+                    <td>{{ storage.available }}</td>
+                    <td>{{ storage.use_percent }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="action-buttons">
+        <button onclick="takeScreenshot()" class="btn btn-primary">Take Screenshot</button>
+        <button onclick="window.location.href='/device/{{ device_id }}/logcat'" class="btn btn-secondary">View Logcat</button>
+        <button onclick="window.location.href='/device/{{ device_id }}/files'" class="btn btn-secondary">📂 File Manager</button>
+    </div>
+</div>
+
+<script>
+function takeScreenshot() {
+    fetch('/device/{{ device_id }}/screenshot')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.open(data.screenshot_url, '_blank');
+            } else {
+                alert('Failed to take screenshot: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+}
+</script>
+
+<style>
+.info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #666;
+}
+
+.storage-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.storage-table th,
+.storage-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+</style>
+{% endblock %} 

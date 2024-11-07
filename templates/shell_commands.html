@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="header-section">
+        <h1>ADB Shell Commands</h1>
+    </div>
+    
+    <div class="shell-section">
+        <div class="command-input-section">
+            <div class="command-input-container">
+                <input type="text" id="shellCommand" placeholder="Enter shell command..." class="shell-input">
+                <button id="clearButton" class="clear-button" style="display: none;">×</button>
+            </div>
+            <button id="executeShell" class="execute-btn">Execute</button>
+        </div>
+        
+        <div class="quick-commands">
+            <h3>Quick Commands:</h3>
+            <div class="quick-command-grid">
+                <button class="quick-cmd-btn" data-cmd="ps">Process List</button>
+                <button class="quick-cmd-btn" data-cmd="netstat">Network Status</button>
+                <button class="quick-cmd-btn" data-cmd="df">Storage Info</button>
+                <button class="quick-cmd-btn" data-cmd="dumpsys battery">Battery Info</button>
+                <button class="quick-cmd-btn" data-cmd="settings list system">System Settings</button>
+                <button class="quick-cmd-btn" data-cmd="pm list users">User List</button>
+            </div>
+            <div class="quick-commands">
+                <h3>display in mobile Commands:</h3>
+                <button class="quick-cmd-btn" data-cmd="am start -a android.intent.action.VIEW">
+                    Open Special Menu
+                </button>
+                <button class="quick-cmd-btn" data-cmd="am start -a android.intent.action.INSERT content://telephony/carriers --ei simId">
+                    Open activity to new APN
+                </button>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <h3>Command Output:</h3>
+            <pre id="shellOutput" class="shell-output">Enter a command to see output...</pre>
+        </div>
+    </div>
+</div>
+
+<style>
+    .command-input-container {
+        position: relative;
+        display: flex;
+        flex: 1;
+    }
+
+    .clear-button {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #999;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 5px;
+        z-index: 2;
+    }
+
+    .clear-button:hover {
+        color: #333;
+    }
+
+    .shell-input {
+        padding-right: 30px !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const commandInput = document.getElementById('shellCommand');
+    const clearButton = document.getElementById('clearButton');
+    const executeButton = document.getElementById('executeShell');
+
+    // Show/hide clear button based on input content
+    commandInput.addEventListener('input', function() {
+        clearButton.style.display = this.value ? 'block' : 'none';
+    });
+
+    // Clear input when X is clicked
+    clearButton.addEventListener('click', function() {
+        commandInput.value = '';
+        clearButton.style.display = 'none';
+        commandInput.focus();
+    });
+
+    // Execute command when Enter is pressed
+    commandInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            executeCommand();
+        }
+    });
+
+    // Quick command buttons
+    document.querySelectorAll('.quick-cmd-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            commandInput.value = this.getAttribute('data-cmd');
+            clearButton.style.display = 'block';
+        });
+    });
+
+    executeButton.addEventListener('click', executeCommand);
+
+    function executeCommand() {
+        const command = commandInput.value;
+        if (!command) return;
+
+        fetch('/execute_shell', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `device_id={{ device_id }}&command=${encodeURIComponent(command)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            const outputElement = document.getElementById('shellOutput');
+            if (data.success) {
+                outputElement.innerHTML = `$ ${command}\n${data.result || 'Command executed successfully'}`;
+            } else {
+                outputElement.innerHTML = `$ ${command}\nError: ${data.error || 'Command failed'}`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('shellOutput').innerHTML = `$ ${command}\nError executing command: ${error}`;
+        });
+    }
+});
+</script>
+{% endblock %} 

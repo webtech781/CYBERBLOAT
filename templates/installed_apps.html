@@ -1,0 +1,277 @@
+{% extends "base.html" %} {% block content %}
+<div class="container">
+  <div class="header-section">
+    <h1>Installed Applications</h1>
+  </div>
+
+  <div id="loadingApps" class="apps-loading">
+    <div class="loading-spinner"></div>
+    <h2>Loading Applications</h2>
+    <div class="loading-progress">
+      <div class="progress-dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <p class="loading-text">Please wait while we fetch your apps...</p>
+    </div>
+  </div>
+
+  <div id="appsContent" class="apps-content hidden">
+    <div class="search-section">
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchApps"
+          placeholder="Search applications..."
+          class="search-input"
+        />
+        <button id="clearSearch" class="clear-search" style="display: none">
+          ×
+        </button>
+      </div>
+      <div class="tabs">
+        <button class="tab-button active" data-tab="all">All Apps</button>
+        <button class="tab-button" data-tab="user">User Apps</button>
+        <button class="tab-button" data-tab="system">System Apps</button>
+      </div>
+    </div>
+
+    <div class="apps-list" id="allApps">
+      {% for app in apps %}
+      <div class="app-item" data-package="{{ app.package }}">
+        <div class="app-icon">
+          <img
+            src="/static/default_icon.png"
+            alt="{{ app.name }}"
+            class="app-icon-img"
+          />
+        </div>
+        <div class="app-info">
+          <div class="app-name">{{ app.name }}</div>
+          <div class="package-name">{{ app.package }}</div>
+          <a
+            href="{{ app.play_store_url }}"
+            target="_blank"
+            class="play-store-link"
+            >View on Play Store</a
+          >
+        </div>
+        <div class="app-actions">
+          {% if app.is_system %}
+          <span class="system-badge">System</span>
+          {% endif %}
+          <!-- Comment out clear data button
+          <button class="clear-data-btn" data-package="{{ app.package }}" data-device="{{ device_id }}">
+            Clear Data
+          </button>
+          -->
+          <button
+            class="uninstall-btn"
+            data-package="{{ app.package }}"
+            data-device="{{ device_id }}"
+          >
+            Uninstall
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="apps-list hidden" id="userApps">
+      {% for app in apps if not app.is_system %}
+      <div class="app-item" data-package="{{ app.package }}">
+        <div class="app-icon">
+          <img
+            src="/static/default_icon.png"
+            alt="{{ app.name }}"
+            class="app-icon-img"
+          />
+        </div>
+        <div class="app-info">
+          <div class="app-name">{{ app.name }}</div>
+          <div class="package-name">{{ app.package }}</div>
+          <a
+            href="{{ app.play_store_url }}"
+            target="_blank"
+            class="play-store-link"
+            >View on Play Store</a
+          >
+        </div>
+        <div class="app-actions">
+           <!-- Comment out clear data button
+          <button class="clear-data-btn" data-package="{{ app.package }}" data-device="{{ device_id }}">
+            Clear Data
+          </button>
+          -->
+          <button
+            class="uninstall-btn"
+            data-package="{{ app.package }}"
+            data-device="{{ device_id }}"
+          >
+            Uninstall
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="apps-list hidden" id="systemApps">
+      {% for app in apps if app.is_system %}
+      <div class="app-item" data-package="{{ app.package }}">
+        <div class="app-icon">
+          <img
+            src="/static/default_icon.png"
+            alt="{{ app.name }}"
+            class="app-icon-img"
+          />
+        </div>
+        <div class="app-info">
+          <div class="app-name">{{ app.name }}</div>
+          <div class="package-name">{{ app.package }}</div>
+          <a
+            href="{{ app.play_store_url }}"
+            target="_blank"
+            class="play-store-link"
+            >View on Play Store</a
+          >
+        </div>
+        <div class="app-actions">
+          <span class="system-badge">System</span>
+          <button
+            class="uninstall-btn"
+            data-package="{{ app.package }}"
+            data-device="{{ device_id }}"
+          >
+            Uninstall
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Show content and hide loading after a short delay
+    setTimeout(() => {
+      document.getElementById("loadingApps").style.display = "none";
+      document.getElementById("appsContent").classList.remove("hidden");
+    }, 1000);
+
+    // Tab switching
+    document.querySelectorAll(".tab-button").forEach((button) => {
+      button.addEventListener("click", function () {
+        document.querySelectorAll(".tab-button").forEach((btn) => 
+          btn.classList.remove("active")
+        );
+        document.querySelectorAll(".apps-list").forEach((list) => 
+          list.classList.add("hidden")
+        );
+        this.classList.add("active");
+        document.getElementById(this.dataset.tab + "Apps").classList.remove("hidden");
+      });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById("searchApps");
+    const clearButton = document.getElementById("clearSearch");
+
+    searchInput.addEventListener("input", function () {
+      const searchTerm = this.value.toLowerCase();
+      clearButton.style.display = searchTerm ? "block" : "none";
+
+      document.querySelectorAll(".app-item").forEach((app) => {
+        const appName = app.querySelector(".app-name").textContent.toLowerCase();
+        const packageName = app.querySelector(".package-name").textContent.toLowerCase();
+        const isVisible = appName.includes(searchTerm) || packageName.includes(searchTerm);
+        app.style.display = isVisible ? "flex" : "none";
+      });
+    });
+
+    clearButton.addEventListener("click", function () {
+      searchInput.value = "";
+      searchInput.dispatchEvent(new Event("input"));
+      searchInput.focus();
+    });
+
+    // Uninstall functionality
+    document.querySelectorAll(".uninstall-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const packageName = this.dataset.package;
+        const deviceId = this.dataset.device;
+
+        if (confirm(`Are you sure you want to uninstall ${packageName}?`)) {
+          fetch("/uninstall_app", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `device_id=${deviceId}&package=${packageName}`
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              location.reload();
+            } else {
+              alert("Failed to uninstall app: " + data.message);
+            }
+          })
+          .catch((error) => {
+            alert("Error: " + error);
+          });
+        }
+      });
+    });
+
+    // Comment out clear data functionality
+    /*
+    document.querySelectorAll(".clear-data-btn").forEach((button) => {
+      button.addEventListener("click", function () {
+        const packageName = this.dataset.package;
+        const deviceId = this.dataset.device;
+        
+        if (confirm(`Are you sure you want to clear data for ${packageName}?`)) {
+          fetch("/clear_app_data", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `device_id=${deviceId}&package=${packageName}`
+          })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              alert("App data cleared successfully!");
+            } else {
+              alert("Failed to clear app data: " + data.message);
+            }
+          })
+          .catch((error) => {
+            alert("Error: " + error);
+          });
+        }
+      });
+    });
+    */
+  });
+</script>
+
+<style>
+.clear-data-btn {
+    padding: 6px 12px;
+    background-color: #ffc107;
+    color: #000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-right: 8px;
+}
+
+.clear-data-btn:hover {
+    background-color: #ffb300;
+}
+</style>
+{% endblock %}

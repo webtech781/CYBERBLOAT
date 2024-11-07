@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="docs-container">
+    <div class="docs-header">
+        <h1>CyberBloat Documentation</h1>
+        <p class="docs-subtitle">A powerful Android Device Management Tool</p>
+    </div>
+
+    <div class="docs-content">
+        <div class="docs-section">
+            <h2>🚀 Features & Capabilities</h2>
+            
+            <div class="feature-card">
+                <h3>📱 Device Management</h3>
+                <ul>
+                    <li>Real-time device connection monitoring</li>
+                    <li>Multiple device support</li>
+                    <li>Automatic device detection</li>
+                    <li>USB debugging verification</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>📦 App Management</h3>
+                <ul>
+                    <li>View all installed applications</li>
+                    <li>Separate user and system apps</li>
+                    <li>Uninstall applications safely</li>
+                    <li>View app details and Play Store links</li>
+                    <li>Search and filter applications</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>💻 Shell Commands</h3>
+                <ul>
+                    <li>Execute custom ADB shell commands</li>
+                    <li>Pre-configured quick commands</li>
+                    <li>Real-time command output</li>
+                    <li>Command history</li>
+                    <li>Safe command execution</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h3>📊 System Information</h3>
+                <ul>
+                    <li>Battery status monitoring</li>
+                    <li>Device properties</li>
+                    <li>Network information</li>
+                    <li>Process management</li>
+                    <li>Storage analysis</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>🛠️ Setup Guide</h2>
+            
+            <div class="setup-steps">
+                <h3>Prerequisites</h3>
+                <ul>
+                    <li>Python 3.6 or higher</li>
+                    <li>ADB (Android Debug Bridge)</li>
+                    <li>USB debugging enabled on Android device</li>
+                </ul>
+
+                <h3>Android Device Setup</h3>
+                <ol>
+                    <li>Enable Developer Options (tap Build Number 7 times)</li>
+                    <li>Enable USB debugging in Developer Options</li>
+                    <li>Connect device via USB</li>
+                    <li>Accept USB debugging prompt on device</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>💡 Usage Tips</h2>
+            
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h4>Quick Commands</h4>
+                    <p>Use predefined commands for common tasks like checking battery status or network information.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>App Management</h4>
+                    <p>Safely uninstall apps and view their details directly from the web interface.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>Device Monitoring</h4>
+                    <p>Keep track of device connection status and system information in real-time.</p>
+                </div>
+
+                <div class="tip-card">
+                    <h4>Shell Access</h4>
+                    <p>Execute custom commands for advanced device management and debugging.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="docs-section">
+            <h2>🔧 Troubleshooting</h2>
+            
+            <div class="feature-card">
+                <h3>Common Issues</h3>
+                <ul>
+                    <li>Device not detected: Check USB debugging and cable connection</li>
+                    <li>Command fails: Ensure proper permissions and device connection</li>
+                    <li>App uninstall fails: Check if app is system app or has proper permissions</li>
+                    <li>Shell command error: Verify command syntax and device support</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>File Manager</h1>
+    
+    <div class="info-card">
+        <div class="path-navigation">
+            <h3>Current Path: {{ current_path }}</h3>
+            {% if current_path != '/storage/emulated/0' %}
+            <a href="{{ url_for('file_manager', device_id=device_id, path=parent_path) }}" class="btn btn-secondary">
+                ← Back
+            </a>
+            {% endif %}
+        </div>
+
+        <div class="action-buttons">
+            <div class="upload-section">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <input type="file" id="fileInput" style="display: none" multiple>
+                    <button type="button" onclick="document.getElementById('fileInput').click()" class="btn btn-primary">
+                        📤 Upload Files
+                    </button>
+                </form>
+            </div>
+            <button onclick="createFolder()" class="btn btn-secondary">📁 New Folder</button>
+            <button onclick="shareSelectedFiles()" class="btn btn-primary" id="shareButton" disabled>
+                📨 Share Selected
+            </button>
+        </div>
+
+        <table class="storage-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Modified</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr class="file-row">
+                    <td>
+                        <input type="checkbox" class="file-checkbox" data-path="{{ file.path }}">
+                    </td>
+                    <td>
+                        {% if file.is_dir %}
+                        <a href="{{ url_for('file_manager', device_id=device_id, path=file.path) }}">
+                            📁 {{ file.name }}
+                        </a>
+                        {% else %}
+                        📄 {{ file.name }}
+                        {% endif %}
+                    </td>
+                    <td>{{ file.size }}</td>
+                    <td>{{ file.modified }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            {% if not file.is_dir %}
+                            <button onclick="downloadFile('{{ file.path }}')" class="btn btn-sm btn-secondary">
+                                📥 Download
+                            </button>
+                            {% endif %}
+                            <button onclick="deleteFile('{{ file.path }}')" class="btn btn-sm btn-danger">
+                                🗑️ Delete
+                            </button>
+                            <button onclick="renameFile('{{ file.path }}')" class="btn btn-sm btn-secondary">
+                                ✏️ Rename
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// File upload handling
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const files = e.target.files;
+    if (files.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('path', '{{ current_path }}');
+    
+    for (let file of files) {
+        formData.append('file', file);
+    }
+
+    fetch('/device/{{ device_id }}/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Upload failed: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+});
+
+// Download file
+function downloadFile(path) {
+    window.location.href = `/device/{{ device_id }}/download?path=${encodeURIComponent(path)}`;
+}
+
+// Create new folder
+function createFolder() {
+    const folderName = prompt('Enter folder name:');
+    if (!folderName) return;
+
+    fetch('/device/{{ device_id }}/create_folder', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `path={{ current_path }}&folder_name=${encodeURIComponent(folderName)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to create folder: ' + data.error);
+        }
+    });
+}
+
+// Delete file/folder
+function deleteFile(path) {
+    if (confirm('Are you sure you want to delete this item?')) {
+        fetch('/device/{{ device_id }}/delete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `path=${encodeURIComponent(path)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to delete: ' + data.error);
+            }
+        });
+    }
+}
+
+// Rename file/folder
+function renameFile(path) {
+    const newName = prompt('Enter new name:');
+    if (!newName) return;
+
+    fetch('/device/{{ device_id }}/rename', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `old_path=${encodeURIComponent(path)}&new_name=${encodeURIComponent(newName)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Failed to rename: ' + data.error);
+        }
+    });
+}
+
+// Handle multiple selection
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.file-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAll');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = selectAllCheckbox.checked;
+    });
+    updateShareButton();
+}
+
+function updateShareButton() {
+    const selectedFiles = document.querySelectorAll('.file-checkbox:checked');
+    document.getElementById('shareButton').disabled = selectedFiles.length === 0;
+}
+
+document.querySelectorAll('.file-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', updateShareButton);
+});
+
+// Share selected files
+function shareSelectedFiles() {
+    const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+        .map(checkbox => checkbox.dataset.path);
+    
+    if (selectedFiles.length === 0) return;
+
+    fetch('/device/{{ device_id }}/share', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ files: selectedFiles })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Files shared successfully!');
+        } else {
+            alert('Failed to share files: ' + data.error);
+        }
+    });
+}
+</script>
+
+<style>
+.info-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.path-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.storage-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.storage-table th,
+.storage-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.9em;
+}
+
+.btn-primary {
+    background: #007bff;
+    color: white;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.file-row:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %} 

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <div class="loading-screen">
+        <h1>Waiting for ADB Devices</h1>
+        <div class="loader"></div>
+        <div class="device-connection">
+            <div class="connection-dot"></div>
+            <div class="connection-dot"></div>
+            <div class="connection-dot"></div>
+        </div>
+        <p>Please connect your device and ensure ADB is enabled...</p>
+    </div>
+</div>
+
+<script>
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 5;
+
+function checkDevices() {
+    fetch('/check_devices')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('details').textContent = data.error;
+                
+                // If no devices found, retry after delay
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(checkDevices, 2000);  // Retry after 2 seconds
+                } else {
+                    document.getElementById('message').textContent = "Connection Failed";
+                    document.getElementById('details').textContent = 
+                        "Please try the following:\n" +
+                        "1. Disconnect and reconnect your device\n" +
+                        "2. Restart the application\n" +
+                        "3. Check USB debugging is enabled";
+                }
+            } else if (data.devices && data.devices.length > 0) {
+                window.location.reload();
+            } else {
+                // No devices found, retry
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    setTimeout(checkDevices, 2000);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('details').textContent = 
+                "Connection error. Please restart the application.";
+        });
+}
+
+// Start checking for devices
+checkDevices();
+</script>
+{% endblock %} 
