@@ -73,6 +73,7 @@ APP_TITLES = {
     'com.google.android.apps.tachyon': 'Google Meet',
     'com.google.android.apps.meetings': 'Meet',
     'com.google.android.apps.walletnfcrel': 'Google Pay',
+    'com.google.android.apps.nbu.paisa.user': 'Google Pay',
     'com.google.android.apps.sheets': 'Sheets',
     'com.google.android.apps.slides': 'Slides',
     'com.google.android.apps.classroom': 'Classroom',
