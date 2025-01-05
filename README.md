@@ -92,6 +92,8 @@ You should see the ADB version information. If you get a "command not found" err
    # Activate virtual environment
    # On Windows:
    venv\Scripts\activate
+   ```
+   ```
    # On Linux/Mac:
    source venv/bin/activate
    ```
