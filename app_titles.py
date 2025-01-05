@@ -54,6 +54,7 @@ APP_TITLES = {
     'com.coloros.weather2': 'Weather',
     'com.coloros.weather.service': 'Weather Service',
     'com.netflix.mediaclient':'Netflix',
+    'com.oppo.quicksearchbox':'Global Search',
    
     # Google Apps
     'com.google.android.googlequicksearchbox': 'Google',
