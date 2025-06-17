@@ -93,12 +93,12 @@ You should see the ADB version information. If you get a "command not found" err
    # Activate virtual environment
    venv\Scripts\activate
    ```
-   ```
-   # On Linux/Mac:
-   # Create virtual environment
-   python3 -m venv venv
-   # Activate virtual environment
-   source venv/bin/activate
+   ```bash
+    # On Linux/Mac:
+    # Create virtual environment
+    python3 -m venv venv
+    # Activate virtual environment
+    source venv/bin/activate
    ```
 
 3. **Install Dependencies**
