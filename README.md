@@ -86,15 +86,18 @@ You should see the ADB version information. If you get a "command not found" err
 
 2. **Create Virtual Environment**
    ```bash
+    # On Windows:
    # Create virtual environment
    python -m venv venv
 
    # Activate virtual environment
-   # On Windows:
    venv\Scripts\activate
    ```
    ```
    # On Linux/Mac:
+   # Create virtual environment
+   python3 -m venv venv
+   # Activate virtual environment
    source venv/bin/activate
    ```
 
